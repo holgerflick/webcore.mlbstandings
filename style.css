@@ -1,0 +1,98 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+}
+
+:root {
+  --background-color: #1d232a;
+  --text-color: #a6adbb;
+  --text-color-up: hsl(120 100% 50% / 0.6);
+  --text-color-down: hsl(0 100% 50% / 0.6);
+}
+
+.wrapper {
+  padding: 4rem 0;
+  width: min(900px, 100% - 3rem);
+  margin-inline: auto;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #323232;
+  padding: 1rem;
+}
+
+caption,
+td,
+th {
+  padding: 0.7rem;
+}
+th,
+caption {
+  text-align: left;
+}
+
+caption {
+  background: hsl(0 0% 0%);
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+th {
+  background-color: hsl(0 0% 0% / 0.5);
+}
+
+td.positive {
+  color: var(--text-color-up);
+}
+td.negative {
+  color: var(--text-color-down);
+}
+
+tr:nth-of-type(2n) {
+  background-color: hsl(0 0% 0% / 0.15);
+}
+
+/* mobile first */
+@media (max-width: 56rem) {
+  th {
+    display: none;
+  }
+
+  td {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: 15ch auto;
+    padding: 0.5rem 1rem;
+  }
+
+  td:first-child {
+    padding-top: 2rem;
+  }
+
+  td:last-child {
+    padding-bottom: 2rem;
+  }
+
+  td::before {
+    content: attr(data-label) ':\00a0';
+    display: inline-block;
+    font-weight: bold;
+    color: var(--text-color);
+
+    text-transform: capitalize;
+  }
+}
+
