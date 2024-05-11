@@ -3,4 +3,5 @@ object Form1: TForm1
   Height = 532
   CSSLibrary = cssBootstrap
   ElementFont = efCSS
+  OnCreate = WebFormCreate
 end
