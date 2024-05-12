@@ -8,6 +8,7 @@ uses
 
 type
   TForm1 = class(TWebForm)
+  [async]
     procedure WebFormCreate(Sender: TObject);
   private
     { Private declarations }
@@ -32,7 +33,7 @@ var
 begin
   LStandings := TResponsiveStandings.Create;
   try
-    LStandings.GenerateStandings('table-container');
+    await(LStandings.GenerateStandings('table-container'));
   finally
     LStandings.Free;
   end;

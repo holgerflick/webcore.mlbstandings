@@ -10,9 +10,9 @@ type
   strict private
     FW: Integer;
     FL: Integer;
-    FPCT: Double;
-    FGB: Double;
-    FWCGB: Double;
+    FPCT: String;
+    FGB: String;
+    FWCGB: String;
     FSTRK: String;
     FRS: Integer;
     FRA: Integer;
@@ -27,9 +27,9 @@ type
 
     property W: Integer read FW write FW;
     property L: Integer read FL write FL;
-    property PCT: Double read FPCT write FPCT;
-    property GB: Double read FGB write FGB;
-    property WCGB: Double read FWCGB write FWCGB;
+    property PCT: String read FPCT write FPCT;
+    property GB: String read FGB write FGB;
+    property WCGB: String read FWCGB write FWCGB;
     property STRK: String read FSTRK write FSTRK;
     property RS: Integer read FRS write FRS;
     property RA: Integer read FRA write FRA;
@@ -63,6 +63,7 @@ uses
   Web
   , JS
   , WEBLib.REST
+  , System.SysUtils
   ;
 
  const
@@ -119,9 +120,9 @@ begin
         LStandingsItem.Team := String( LTeamRecord['teamName'] );
         LStandingsItem.W := Integer( LTeamRecord['wins'] );
         LStandingsItem.L := Integer( LTeamRecord['losses'] );
-        LStandingsItem.PCT := Double( LTeamRecord['winPct'] );
-        LStandingsItem.GB := Double( LTeamRecord['gamesBack'] );
-        LStandingsItem.WCGB := Double( LTeamRecord['wildCardGamesBack'] );
+        LStandingsItem.PCT := String( LTeamRecord['winPct'] );
+        LStandingsItem.GB := String( LTeamRecord['gamesBack'] );
+        LStandingsItem.WCGB := String( LTeamRecord['wildCardGamesBack'] );
         LStandingsItem.STRK := String( LTeamRecord['streak'] );
         LStandingsItem.RS := Integer( LTeamRecord['runsScored'] );
         LStandingsItem.RA := Integer( LTeamRecord['runsAllowed'] );
@@ -131,10 +132,7 @@ begin
 
         FStandings.Add(LStandingsItem);
       end;
-
     end;
-
-
 
   finally
     LHTTP.Free;
@@ -142,17 +140,31 @@ begin
 end;
 
 procedure TResponsiveStandings.GenerateStandings(AElementName: String);
+  function SignedString(AInt: Integer): String;
+  begin
+    if AInt > 0 then
+    begin
+      Result := '+';
+    end;
+
+    Result := Result + IntToStr( AInt );
+  end;
+
 var
   LRoot: TJSElement;
   LTable: TJSElement;
+  LCaption: TJSElement;
 
   LHeader: TJSElement;
 
   LBody,
-  LRow,
-  LCell: TJSElement;
+  LRow: TJSElement;
+
+  LItem: TStandingsItem;
 
 begin
+  await(FetchData);
+
   LRoot := document.getElementById(AElementName);
   if not Assigned(LRoot) then
   begin
@@ -160,30 +172,59 @@ begin
   end;
 
   LTable := document.createElement('table');
-  LHeader := document.createElement('tr');
+  LCaption := document.createElement('caption');
+  LCaption.innerText := 'Major League Baseball Standings';
+
+  LHeader := document.createElement('thead');
   LHeader.innerHTML :=
   '''
-        <caption>Major League Baseball Standings</caption>
-        <thead>
-          <tr>
-            <th>AL EAST</th>
-            <th>W</th>
-            <th>L</th>
-            <th>PCT</th>
-            <th>GB</th>
-            <th>WCGB</th>
-            <th>STRK</th>
-            <th>RS</th>
-            <th>RA</th>
-            <th>DIFF</th>
-            <th>HOME</th>
-            <th>AWAY</th>
-          </tr>
-        </thead>
-        <tbody>
-        </tbody>
+    <tr>
+      <th>AL EAST</th>
+      <th>W</th>
+      <th>L</th>
+      <th>PCT</th>
+      <th>GB</th>
+      <th>WCGB</th>
+      <th>STRK</th>
+      <th>RS</th>
+      <th>RA</th>
+      <th>DIFF</th>
+      <th>HOME</th>
+      <th>AWAY</th>
+    </tr>
   ''';
+
+  LBody := document.createElement('tbody');
+
+  for LItem in FStandings do
+  begin
+    LRow := document.createElement('tr');
+    LRow.innerHTML :=
+    Format(
+    '''
+      <td data-label="team">%s</td>
+      <td data-label="wins">%d</td>
+      <td data-label="losses">%d</td>
+      <td data-label="pct">%s</td>
+      <td data-label="games back">%s</td>
+      <td data-label="wildcard behind">%s</td>
+      <td data-label="streak">%s</td>
+      <td data-label="runs scored">%d</td>
+      <td data-label="runs against">%d</td>
+      <td data-label="difference">%s</td>
+      <td data-label="home">%s</td>
+      <td data-label="away">%s</td>
+    ''',
+    [ LItem.Team, LItem.W, LItem.L, LItem.PCT, LItem.GB, LItem.WCGB,
+      LItem.STRK, LItem.RS, LItem.RA, SignedString(LItem.DIFF), LItem.HOME, LItem.AWAY
+    ] );
+
+    LBody.appendChild(LRow);
+  end;
+
+  LTable.appendChild(LCaption);
   LTable.appendChild(LHeader);
+  LTable.appendChild(LBody);
   LRoot.appendChild(LTable);
 end;
 
