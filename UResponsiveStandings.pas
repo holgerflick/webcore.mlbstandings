@@ -2,52 +2,15 @@
 
 interface
 uses
-  System.Generics.Collections
+    System.Generics.Collections
+  , UDatabaseController
   ;
 
-type
-  TStandingsItem = class
-  strict private
-    FW: Integer;
-    FL: Integer;
-    FPCT: String;
-    FGB: String;
-    FWCGB: String;
-    FSTRK: String;
-    FRS: Integer;
-    FRA: Integer;
-    FDIFF: Integer;
-    FHOME: String;
-    FAWAY: String;
-
-    FTeam: String;
-
-  published
-    property Team: String read FTeam write FTeam;
-
-    property W: Integer read FW write FW;
-    property L: Integer read FL write FL;
-    property PCT: String read FPCT write FPCT;
-    property GB: String read FGB write FGB;
-    property WCGB: String read FWCGB write FWCGB;
-    property STRK: String read FSTRK write FSTRK;
-    property RS: Integer read FRS write FRS;
-    property RA: Integer read FRA write FRA;
-    property DIFF: Integer read FDIFF write FDIFF;
-    property HOME: String read FHOME write FHOME;
-    property AWAY: String read FAWAY write FAWAY;
-
-  end;
-
-  TStandings = TObjectList<TStandingsItem>;
 
 type
   TResponsiveStandings = class
   private
-    FStandings: TStandings;
-
-    [async]
-    procedure FetchData;
+    FDatabaseController: TDatabaseController;
 
   public
     constructor Create;
@@ -61,13 +24,9 @@ type
 implementation
 uses
   Web
-  , JS
-  , WEBLib.REST
   , System.SysUtils
   ;
 
- const
-   URL_SERVICE = 'http://192.168.4.47:3001/standings?division.id=201';
 
 { TResponsiveStandings }
 
@@ -75,68 +34,14 @@ constructor TResponsiveStandings.Create;
 begin
   inherited;
 
-  FStandings := TStandings.Create;
+  FDatabaseController := TDatabaseController.Create(nil);
 end;
 
 destructor TResponsiveStandings.Destroy;
 begin
-  FStandings.Free;
+  FDatabaseController.Free;
 
   inherited;
-end;
-
-procedure TResponsiveStandings.FetchData;
-var
-  LHTTP: TWebHttpRequest;
-  LResponse: TJSXMLHttpRequest;
-  LArr: TJSArray;
-  LStandings: TJSObject;
-  LTeamRecords: TJSArray;
-  LTeamRecord: TJSObject;
-  i: Integer;
-
-  LStandingsItem: TStandingsItem;
-
-begin
-  LHTTP := TWebHttpRequest.Create(nil);
-  try
-    LHttp.ResponseType := rtJSON;
-    LHttp.Url := URL_SERVICE;
-    LResponse := await( TJSXMLHttpRequest, LHttp.Perform );
-
-    if LResponse.Status = 200 then
-    begin
-      FStandings.Clear;
-
-      LArr :=  TJSArray( LResponse.response );
-      LStandings := TJSObject( LArr[0] );
-      LTeamRecords := TJSArray( LStandings['teamRecords'] );
-
-      for i := 0 to LTeamRecords.Length - 1 do
-      begin
-        LTeamRecord := TJSObject( LTeamRecords[i] );
-
-        LStandingsItem := TStandingsItem.Create;
-        LStandingsItem.Team := String( LTeamRecord['teamName'] );
-        LStandingsItem.W := Integer( LTeamRecord['wins'] );
-        LStandingsItem.L := Integer( LTeamRecord['losses'] );
-        LStandingsItem.PCT := String( LTeamRecord['winPct'] );
-        LStandingsItem.GB := String( LTeamRecord['gamesBack'] );
-        LStandingsItem.WCGB := String( LTeamRecord['wildCardGamesBack'] );
-        LStandingsItem.STRK := String( LTeamRecord['streak'] );
-        LStandingsItem.RS := Integer( LTeamRecord['runsScored'] );
-        LStandingsItem.RA := Integer( LTeamRecord['runsAllowed'] );
-        LStandingsItem.DIFF := Integer( LTeamRecord['runDifferential'] );
-        LStandingsItem.HOME := String( LTeamRecord['home'] );
-        LStandingsItem.AWAY := String( LTeamRecord['away'] );
-
-        FStandings.Add(LStandingsItem);
-      end;
-    end;
-
-  finally
-    LHTTP.Free;
-  end;
 end;
 
 procedure TResponsiveStandings.GenerateStandings(AElementName: String);
@@ -163,9 +68,7 @@ var
   LItem: TStandingsItem;
 
 begin
-  await(FetchData);
-
-  LRoot := document.getElementById(AElementName);
+   LRoot := document.getElementById(AElementName);
   if not Assigned(LRoot) then
   begin
     Exit;
@@ -196,7 +99,10 @@ begin
 
   LBody := document.createElement('tbody');
 
-  for LItem in FStandings do
+  FDatabaseController.First;
+
+  LItem := TStandingsItem.Create;
+  while (FDatabaseController.Next(LItem)) do
   begin
     LRow := document.createElement('tr');
     LRow.innerHTML :=
