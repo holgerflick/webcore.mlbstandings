@@ -63,10 +63,10 @@ type
 
     procedure WebDataModuleCreate(Sender: TObject);
     procedure WebDataModuleDestroy(Sender: TObject);
+    procedure StandingsAfterOpen(DataSet: TDataSet);
   private
+    FOnReady: TNotifyEvent;
     { Private declarations }
-
-
 
 
     procedure TransferToItem( AItem: TStandingsItem );
@@ -75,6 +75,8 @@ type
     procedure Open;
     procedure First;
     function Next( AItem: TStandingsItem ): Boolean;
+
+    property OnReady: TNotifyEvent read FOnReady write FOnReady;
   end;
 
 
@@ -104,7 +106,17 @@ end;
 
 procedure TDatabaseController.Open;
 begin
+  console.log('Opening....');
   Standings.Open;
+end;
+
+procedure TDatabaseController.StandingsAfterOpen(DataSet: TDataSet);
+begin
+  console.log('AfterOpen fired.');
+  if Assigned( FOnReady ) then
+  begin
+    FOnReady( DataSet );
+  end;
 end;
 
 procedure TDatabaseController.TransferToItem(AItem: TStandingsItem);

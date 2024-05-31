@@ -6,7 +6,7 @@ object DatabaseController: TDatabaseController
   object Standings: TWebStellarDataStoreClientDataset
     TableName = 'leagues'
     TableId = 0
-    TableWhereQuery = 'divisionId = 201'
+    AfterOpen = StandingsAfterOpen
     Left = 104
     Top = 80
     object Standingsid: TIntegerField

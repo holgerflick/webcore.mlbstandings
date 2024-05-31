@@ -11,13 +11,20 @@ type
   TResponsiveStandings = class
   private
     FDatabaseController: TDatabaseController;
+    FElementId: String;
 
-  public
-    constructor Create;
-    destructor Destroy; override;
+    procedure OnReady( Sender: TObject );
 
     [async]
-    procedure GenerateStandings( AElementName: String );
+    procedure GenerateTable;
+
+
+  public
+    constructor Create( AElementId: String );
+    destructor Destroy; override;
+
+    procedure GenerateStandings;
+
   end;
 
 
@@ -30,11 +37,13 @@ uses
 
 { TResponsiveStandings }
 
-constructor TResponsiveStandings.Create;
+constructor TResponsiveStandings.Create( AElementId: String );
 begin
-  inherited;
+  inherited Create;
 
+  FElementId := AElementId;
   FDatabaseController := TDatabaseController.Create(nil);
+  FDatabaseController.OnReady := self.OnReady;
 end;
 
 destructor TResponsiveStandings.Destroy;
@@ -44,7 +53,12 @@ begin
   inherited;
 end;
 
-procedure TResponsiveStandings.GenerateStandings(AElementName: String);
+procedure TResponsiveStandings.GenerateStandings;
+begin
+  FDatabaseController.Open;
+end;
+
+procedure TResponsiveStandings.GenerateTable;
   function SignedString(AInt: Integer): String;
   begin
     if AInt > 0 then
@@ -68,7 +82,7 @@ var
   LItem: TStandingsItem;
 
 begin
-   LRoot := document.getElementById(AElementName);
+   LRoot := document.getElementById(FElementId);
   if not Assigned(LRoot) then
   begin
     Exit;
@@ -132,6 +146,13 @@ begin
   LTable.appendChild(LHeader);
   LTable.appendChild(LBody);
   LRoot.appendChild(LTable);
+end;
+
+procedure TResponsiveStandings.OnReady(Sender: TObject);
+begin
+  console.log('Standings gets notified that table is open.');
+
+  GenerateTable;
 end;
 
 end.
