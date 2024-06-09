@@ -1,3 +1,5 @@
+![Demo screenshot](./.github/demo.png)
+
 # Responsive Table Demo
 
 Learn how to retrieve data from StellarDS and show it in a dynamically generated table that is made responsive using CSS.
