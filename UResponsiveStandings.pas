@@ -2,8 +2,13 @@
 
 interface
 uses
-    System.Generics.Collections
+    Web
+  , JS
+
+  , System.Generics.Collections
+
   , UDatabaseController
+
   ;
 
 
@@ -18,7 +23,6 @@ type
     [async]
     procedure GenerateTable;
 
-
   public
     constructor Create( AElementId: String );
     destructor Destroy; override;
@@ -30,8 +34,7 @@ type
 
 implementation
 uses
-  Web
-  , System.SysUtils
+  System.SysUtils
   ;
 
 
@@ -112,8 +115,6 @@ begin
   ''';
 
   LBody := document.createElement('tbody');
-
-  FDatabaseController.First;
 
   LItem := TStandingsItem.Create;
   while (FDatabaseController.Next(LItem)) do

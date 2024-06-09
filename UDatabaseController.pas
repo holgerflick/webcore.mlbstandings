@@ -3,8 +3,19 @@
 interface
 
 uses
-  System.SysUtils, System.Classes, JS, Web, WEBLib.Modules, Data.DB,
-  WEBLib.StellarDataStoreCDS, WEBLib.REST, WEBLib.StellarDataStore;
+    System.SysUtils
+  , System.Classes
+
+  , JS
+  , Web
+
+  , Data.DB
+
+  , WEBLib.Modules
+  , WEBLib.StellarDataStoreCDS
+  , WEBLib.REST
+  , WEBLib.StellarDataStore
+  ;
 
 type
   TStandingsItem = class
@@ -73,7 +84,6 @@ type
   public
     { Public declarations }
     procedure Open;
-    procedure First;
     function Next( AItem: TStandingsItem ): Boolean;
 
     property OnReady: TNotifyEvent read FOnReady write FOnReady;
@@ -83,24 +93,28 @@ type
 implementation
 
 const
-  ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhY2Nlc3MtdG9rZW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllci10b2tlbiI6ImY4YzRiMWRlLTQ4MTEtNGQxZC0zNTZhLTA4ZGMzZTMwOTE3MyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWVpZGVudGlmaWVyLXByb2plY3QiOiIxOGIxMWE4OS0xNTcwLTQ4Y2MtZTA3Yy0wOGRjMzc3OTg4YzAiLCJleHAiOjE3MTk0OTkxNDIsImlzcyI6Imh0dHBzOi8vYXBpLnN0ZWxsYXJkcy5pbyIsImF1ZCI6Imh0dHBzOi8vYXBpLnN0ZWxsYXJkcy5pbyJ9.ecCOgofXOybb30ev4ptjyep5yqBkNsByZnII8Zhlars';
+  ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhY2Nlc3MtdG9rZW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllci10b2tlbiI6ImQ3ZDI1YjAxLTZkYjUtNDg4MC00ODM0LTA4ZGM2NjAyZmM0NyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWVpZGVudGlmaWVyLXByb2plY3QiOiJmZDM1ZWJmYy1kZGZmLTRhMjItY2QyMC0wOGRjMzc5MDdmOTEiLCJleHAiOjE3MjA1MjkzNTgsImlzcyI6Imh0dHBzOi8vc3RlbGxhcmRzLmlvIiwiYXVkIjoiaHR0cHM6Ly9hcGkuc3RlbGxhcmRzLmlvIn0.qR-mNf57uWIo65Sk5RdkTG35u3Sy-lmHLpxgGpomvR8';
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
 {$R *.dfm}
 
-procedure TDatabaseController.First;
-begin
-  Standings.First;
-end;
-
 function TDatabaseController.Next(AItem: TStandingsItem): Boolean;
 begin
-  Result := Standings.Eof;
+  console.log('Next item');
+  Result := not Standings.Eof;
 
   if not Result then
   begin
+    console.log('>> No more items!');
+  end
+  else
+  begin
     TransferToItem( AItem );
+    Standings.Next;
+
+    console.log('>> Next item:');
+    console.log(AItem);
   end;
 end;
 
@@ -115,6 +129,7 @@ begin
   console.log('AfterOpen fired.');
   if Assigned( FOnReady ) then
   begin
+    Standings.First;
     FOnReady( DataSet );
   end;
 end;
