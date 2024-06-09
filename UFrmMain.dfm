@@ -4,4 +4,5 @@ object Form1: TForm1
   CSSLibrary = cssBootstrap
   ElementFont = efCSS
   OnCreate = WebFormCreate
+  OnDestroy = WebFormDestroy
 end

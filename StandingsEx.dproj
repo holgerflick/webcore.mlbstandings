@@ -111,6 +111,11 @@
             <DesignClass>TWebForm</DesignClass>
         </DCCReference>
         <DCCReference Include="UResponsiveStandings.pas"/>
+        <DCCReference Include="UDatabaseController.pas">
+            <Form>DatabaseController</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TWebDataModule</DesignClass>
+        </DCCReference>
         <None Include="index.html"/>
         <None Include="style.css"/>
         <BuildConfiguration Include="Base">
@@ -141,12 +146,6 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Untitled1.css" Configuration="Debug" Class="ProjectFile">
-                    <Platform Name="Win32">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="Win32\Debug\StandingsEx.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>StandingsEx.exe</RemoteName>
@@ -154,6 +153,12 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="index.html" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="style.css" Configuration="Debug" Class="ProjectFile">
                     <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>

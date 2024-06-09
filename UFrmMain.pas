@@ -4,14 +4,17 @@ interface
 
 uses
   System.SysUtils, System.Classes, JS, Web, WEBLib.Graphics, WEBLib.Controls,
-  WEBLib.Forms, WEBLib.Dialogs, WEBLib.REST;
+  WEBLib.Forms, WEBLib.Dialogs, WEBLib.REST
+  ,   UResponsiveStandings;
 
 type
   TForm1 = class(TWebForm)
-  [async]
+
     procedure WebFormCreate(Sender: TObject);
+    procedure WebFormDestroy(Sender: TObject);
   private
-    { Private declarations }
+    FStandings: TResponsiveStandings;
+
   public
     { Public declarations }
   end;
@@ -21,22 +24,18 @@ var
 
 implementation
 
-uses
-  UResponsiveStandings;
 
 {$R *.dfm}
 
 procedure TForm1.WebFormCreate(Sender: TObject);
-var
-  LStandings: TResponsiveStandings;
-
 begin
-  LStandings := TResponsiveStandings.Create;
-  try
-    await(LStandings.GenerateStandings('table-container'));
-  finally
-    LStandings.Free;
-  end;
+  FStandings := TResponsiveStandings.Create('table-container');
+  FStandings.GenerateStandings;
+end;
+
+procedure TForm1.WebFormDestroy(Sender: TObject);
+begin
+  FStandings.Free;
 end;
 
 end.

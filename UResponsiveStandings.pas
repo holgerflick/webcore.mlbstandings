@@ -2,144 +2,66 @@
 
 interface
 uses
-  System.Generics.Collections
+    Web
+  , JS
+
+  , System.Generics.Collections
+
+  , UDatabaseController
+
   ;
 
-type
-  TStandingsItem = class
-  strict private
-    FW: Integer;
-    FL: Integer;
-    FPCT: String;
-    FGB: String;
-    FWCGB: String;
-    FSTRK: String;
-    FRS: Integer;
-    FRA: Integer;
-    FDIFF: Integer;
-    FHOME: String;
-    FAWAY: String;
-
-    FTeam: String;
-
-  published
-    property Team: String read FTeam write FTeam;
-
-    property W: Integer read FW write FW;
-    property L: Integer read FL write FL;
-    property PCT: String read FPCT write FPCT;
-    property GB: String read FGB write FGB;
-    property WCGB: String read FWCGB write FWCGB;
-    property STRK: String read FSTRK write FSTRK;
-    property RS: Integer read FRS write FRS;
-    property RA: Integer read FRA write FRA;
-    property DIFF: Integer read FDIFF write FDIFF;
-    property HOME: String read FHOME write FHOME;
-    property AWAY: String read FAWAY write FAWAY;
-
-  end;
-
-  TStandings = TObjectList<TStandingsItem>;
 
 type
   TResponsiveStandings = class
   private
-    FStandings: TStandings;
+    FDatabaseController: TDatabaseController;
+    FElementId: String;
+
+    procedure OnReady( Sender: TObject );
 
     [async]
-    procedure FetchData;
+    procedure GenerateTable;
 
   public
-    constructor Create;
+    constructor Create( AElementId: String );
     destructor Destroy; override;
 
-    [async]
-    procedure GenerateStandings( AElementName: String );
+    procedure GenerateStandings;
+
   end;
 
 
 implementation
 uses
-  Web
-  , JS
-  , WEBLib.REST
-  , System.SysUtils
+  System.SysUtils
   ;
 
- const
-   URL_SERVICE = 'http://192.168.4.47:3001/standings?division.id=201';
 
 { TResponsiveStandings }
 
-constructor TResponsiveStandings.Create;
+constructor TResponsiveStandings.Create( AElementId: String );
 begin
-  inherited;
+  inherited Create;
 
-  FStandings := TStandings.Create;
+  FElementId := AElementId;
+  FDatabaseController := TDatabaseController.Create(nil);
+  FDatabaseController.OnReady := self.OnReady;
 end;
 
 destructor TResponsiveStandings.Destroy;
 begin
-  FStandings.Free;
+  FDatabaseController.Free;
 
   inherited;
 end;
 
-procedure TResponsiveStandings.FetchData;
-var
-  LHTTP: TWebHttpRequest;
-  LResponse: TJSXMLHttpRequest;
-  LArr: TJSArray;
-  LStandings: TJSObject;
-  LTeamRecords: TJSArray;
-  LTeamRecord: TJSObject;
-  i: Integer;
-
-  LStandingsItem: TStandingsItem;
-
+procedure TResponsiveStandings.GenerateStandings;
 begin
-  LHTTP := TWebHttpRequest.Create(nil);
-  try
-    LHttp.ResponseType := rtJSON;
-    LHttp.Url := URL_SERVICE;
-    LResponse := await( TJSXMLHttpRequest, LHttp.Perform );
-
-    if LResponse.Status = 200 then
-    begin
-      FStandings.Clear;
-
-      LArr :=  TJSArray( LResponse.response );
-      LStandings := TJSObject( LArr[0] );
-      LTeamRecords := TJSArray( LStandings['teamRecords'] );
-
-      for i := 0 to LTeamRecords.Length - 1 do
-      begin
-        LTeamRecord := TJSObject( LTeamRecords[i] );
-
-        LStandingsItem := TStandingsItem.Create;
-        LStandingsItem.Team := String( LTeamRecord['teamName'] );
-        LStandingsItem.W := Integer( LTeamRecord['wins'] );
-        LStandingsItem.L := Integer( LTeamRecord['losses'] );
-        LStandingsItem.PCT := String( LTeamRecord['winPct'] );
-        LStandingsItem.GB := String( LTeamRecord['gamesBack'] );
-        LStandingsItem.WCGB := String( LTeamRecord['wildCardGamesBack'] );
-        LStandingsItem.STRK := String( LTeamRecord['streak'] );
-        LStandingsItem.RS := Integer( LTeamRecord['runsScored'] );
-        LStandingsItem.RA := Integer( LTeamRecord['runsAllowed'] );
-        LStandingsItem.DIFF := Integer( LTeamRecord['runDifferential'] );
-        LStandingsItem.HOME := String( LTeamRecord['home'] );
-        LStandingsItem.AWAY := String( LTeamRecord['away'] );
-
-        FStandings.Add(LStandingsItem);
-      end;
-    end;
-
-  finally
-    LHTTP.Free;
-  end;
+  FDatabaseController.Open;
 end;
 
-procedure TResponsiveStandings.GenerateStandings(AElementName: String);
+procedure TResponsiveStandings.GenerateTable;
   function SignedString(AInt: Integer): String;
   begin
     if AInt > 0 then
@@ -163,9 +85,7 @@ var
   LItem: TStandingsItem;
 
 begin
-  await(FetchData);
-
-  LRoot := document.getElementById(AElementName);
+   LRoot := document.getElementById(FElementId);
   if not Assigned(LRoot) then
   begin
     Exit;
@@ -196,7 +116,8 @@ begin
 
   LBody := document.createElement('tbody');
 
-  for LItem in FStandings do
+  LItem := TStandingsItem.Create;
+  while (FDatabaseController.Next(LItem)) do
   begin
     LRow := document.createElement('tr');
     LRow.innerHTML :=
@@ -226,6 +147,13 @@ begin
   LTable.appendChild(LHeader);
   LTable.appendChild(LBody);
   LRoot.appendChild(LTable);
+end;
+
+procedure TResponsiveStandings.OnReady(Sender: TObject);
+begin
+  console.log('Standings gets notified that table is open.');
+
+  GenerateTable;
 end;
 
 end.
